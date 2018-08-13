@@ -1,4 +1,6 @@
-import api.*;
+package ch5_streams;
+
+import ch5_streams.api.*;
 
 public class FactoryVehicle {
     public static Vehicle build(TrafficUnit trafficUnit) {

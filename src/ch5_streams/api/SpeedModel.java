@@ -1,4 +1,4 @@
-package api;
+package ch5_streams.api;
 
 @FunctionalInterface
 public interface SpeedModel {

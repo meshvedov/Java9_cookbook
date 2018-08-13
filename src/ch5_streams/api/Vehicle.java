@@ -1,4 +1,4 @@
-package api;
+package ch5_streams.api;
 
 public interface Vehicle {
     void setSpeedModel(SpeedModel speedModel);

@@ -1,5 +1,7 @@
-import api.SpeedModel;
-import api.TrafficUnit;
+package ch5_streams;
+
+import ch5_streams.api.SpeedModel;
+import ch5_streams.api.TrafficUnit;
 
 public class FactorySpeedModel {
     public static SpeedModel generateSpeedModel(TrafficUnit trafficUnit) {

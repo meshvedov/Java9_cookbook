@@ -1,6 +1,6 @@
-package api;
+package ch5_streams.api;
 
-import api.Vehicle.VehicleType;
+import ch5_streams.api.Vehicle.VehicleType;
 
 public interface TrafficUnit {
     VehicleType getVehicleType();
