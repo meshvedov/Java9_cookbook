@@ -1,4 +1,4 @@
-package main.java.ch2.using_interface;
+package ch2.using_interface;
 
 public interface SpeedModel {
     double getSpeedMph(double timeSec, int weightPounds, int horsePower);

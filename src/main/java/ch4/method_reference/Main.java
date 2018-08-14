@@ -1,4 +1,4 @@
-package main.java.ch4.method_reference;
+package ch4.method_reference;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;

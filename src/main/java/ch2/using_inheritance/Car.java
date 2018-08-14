@@ -1,4 +1,4 @@
-package main.java.ch2.using_inheritance;
+package ch2.using_inheritance;
 
 public class Car extends Vehicle {
     private int passengersCount;

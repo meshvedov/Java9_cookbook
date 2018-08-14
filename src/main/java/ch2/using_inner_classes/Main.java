@@ -1,4 +1,4 @@
-package main.java.ch2.using_inner_classes;
+package ch2.using_inner_classes;
 
 public class Main {
     public static void main(String[] args) {

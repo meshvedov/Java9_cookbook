@@ -1,7 +1,7 @@
-package main.java.ch2.using_classes;
+package ch2.using_classes;
 
-import main.java.ch2.using_classes.Engine;
-import main.java.ch2.using_classes.Vehicle;
+import ch2.using_classes.Engine;
+import ch2.using_classes.Vehicle;
 
 public class Main {
     public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package main.java.ch2.using_classes;
+package ch2.using_classes;
 
 public class Vehicle {
     private int weightPounds;

@@ -1,8 +1,8 @@
-package main.java.ch5_streams;
+package ch5_streams;
 
-import main.java.ch5_streams.api.SpeedModel;
-import main.java.ch5_streams.api.Vehicle;
-import main.java.ch5_streams.api.TrafficUnit;
+import ch5_streams.api.SpeedModel;
+import ch5_streams.api.Vehicle;
+import ch5_streams.api.TrafficUnit;
 
 import java.time.DayOfWeek;
 import java.time.Month;

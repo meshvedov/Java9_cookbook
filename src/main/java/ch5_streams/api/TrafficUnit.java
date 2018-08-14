@@ -1,6 +1,6 @@
-package main.java.ch5_streams.api;
+package ch5_streams.api;
 
-import main.java.ch5_streams.api.Vehicle.VehicleType;
+import ch5_streams.api.Vehicle.VehicleType;
 
 public interface TrafficUnit {
     VehicleType getVehicleType();

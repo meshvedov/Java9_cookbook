@@ -1,6 +1,6 @@
-package main.java.ch5_streams;
+package ch5_streams;
 
-import main.java.ch5_streams.api.*;
+import ch5_streams.api.*;
 
 public class FactoryVehicle {
     public static Vehicle build(TrafficUnit trafficUnit) {

@@ -1,4 +1,4 @@
-package main.java.ch4.function_interface;
+package ch4.function_interface;
 
 import java.util.function.*;
 

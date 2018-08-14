@@ -1,8 +1,8 @@
-package main.java.ch5_streams;
+package ch5_streams;
 
-import main.java.ch5_streams.api.SpeedModel;
-import main.java.ch5_streams.api.TrafficUnit;
-import main.java.ch5_streams.api.Vehicle;
+import ch5_streams.api.SpeedModel;
+import ch5_streams.api.TrafficUnit;
+import ch5_streams.api.Vehicle;
 
 import java.util.Map;
 import java.util.stream.Collectors;
