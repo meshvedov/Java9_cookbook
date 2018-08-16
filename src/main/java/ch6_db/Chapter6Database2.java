@@ -1,5 +1,8 @@
 package ch6_db;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,6 +16,30 @@ public class Chapter6Database2 {
         execute("drop table if exists images");
         execute("create table images (id integer, image bytea)");
         System.out.println("demo12================");
+        traverseRS("select * from images");
+        System.out.println();
+        try(Connection conn = getDbConnection1()) {
+            conn.setAutoCommit(false);
+            String sql = "insert into images (id, image) values (?,?)";
+            try (PreparedStatement st = conn.prepareStatement(sql)) {
+                st.setInt(1, 100);
+                File file = new File("src/main/java/ch6_db/image1.png");
+                FileInputStream fis = new FileInputStream(file);
+                Blob blob = conn.createBlob();//dont implemented for postgres (only mySql and oracle)
+                OutputStream out = blob.setBinaryStream(1);
+                int i = -1;
+                while ((i = fis.read()) != -1) {
+                    out.write(i);
+                }
+                st.setBlob(2, blob);
+                int count = st.executeUpdate();
+                System.out.println("Update count = " + count);
+                conn.commit();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println();
         traverseRS("select * from images");
     }
 
