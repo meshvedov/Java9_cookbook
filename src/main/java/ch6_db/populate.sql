@@ -1,3 +1,5 @@
+delete from enums;
+
 insert into enums (id, type, value) values
 (1, 'vehicle', 'car'),
 (2, 'vehicle', 'truck'),

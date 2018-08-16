@@ -10,8 +10,8 @@ CREATE TABLE person (
 name VARCHAR NOT NULL,
 address VARCHAR NOT NULL,
 dob date NOT NULL,
-order integer DEFAULT 1 NOT NULL,
-PRIMARY KEY (name,address,dob,order)
+ord integer DEFAULT 1 NOT NULL,
+PRIMARY KEY (name,address,dob,ord)
 );
 
 CREATE TABLE traffic_unit (
@@ -29,3 +29,5 @@ temperature integer NOT NULL
 );
 
 CREATE INDEX idx_traffic_unit_vehicle_type_passengers_count ON traffic_unit USING btree (vehicle_type,passengers_count);
+
+create table test (name varchar not null );
