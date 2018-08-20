@@ -16,6 +16,57 @@ public class Chapter6Database2 {
         demo13_blob_bytea_bytes();
         demo14_blob_oid();
         demo15_clob_text();
+        demo16_stored();
+    }
+
+    private static void demo16_stored() {
+        execute("drop function if exists selectText(int)");
+        execute("drop table if exists texts");
+        System.out.println("demo16=====================");
+        try (Connection conn = getDbConnection1()) {
+            //replace(string text, from text, to text)
+            String sql = "{ ? = call replace(?, ?, ?) }";
+            try (CallableStatement st = conn.prepareCall(sql)) {
+                st.registerOutParameter(1, Types.VARCHAR);
+                st.setString(2, "Hello, World! Hello!");
+                st.setString(3, "llo");
+                st.setString(4, "y");
+                st.execute();
+                String res = st.getString(1);
+                System.out.println(res);
+            }
+            System.out.println();
+
+            execute("create or replace function createTableTexts() returns void as $$ " +
+                    "drop table if exists texts; " +
+                    "create table texts (id integer, text text); " +
+                    "$$ language sql");
+            sql = "{ call createTableTexts()}";
+            try (CallableStatement st = conn.prepareCall(sql)) {
+                st.execute();
+            }
+            traverseRS("select createTableTexts()");
+            traverseRS("select * from createTableTexts()");
+            execute("drop function if exists createTableTexts()");
+            System.out.println();
+
+            execute("create or replace function insertText(int, varchar) returns void as $$ " +
+                    "insert into texts(id,text) values($1, replace($2, 'XX', 'ext')); " +
+                    "$$ language sql");
+            sql = "{ call insertText(?, ?)}";
+            try (CallableStatement st = conn.prepareCall(sql)) {
+                st.setInt(1,1);
+                st.setString(2, "TXX 1");
+                st.execute();
+            }
+            execute("select insertText(2, 'TXX 2')");
+            traverseRS("select * from texts");
+            execute("drop function if exists insertText()");
+            System.out.println();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void demo15_clob_text() {
@@ -24,7 +75,7 @@ public class Chapter6Database2 {
         System.out.println("demo15====================================");
         traverseRS("select * from texts");
         System.out.println();
-        try(Connection conn = getDbConnection1()) {
+        try (Connection conn = getDbConnection1()) {
             String sql = "insert into texts (id, text) values (?,?)";
             try (PreparedStatement st = conn.prepareStatement(sql)) {
                 st.setInt(1, 100);
@@ -68,7 +119,7 @@ public class Chapter6Database2 {
         execute("create table lobs (id integer, lob oid)");
         System.out.println("demo14======================");
         System.out.println();
-        try(Connection conn = getDbConnection1()) {
+        try (Connection conn = getDbConnection1()) {
             conn.setAutoCommit(false);
             LargeObjectManager lobm = conn.unwrap(org.postgresql.PGConnection.class).getLargeObjectAPI();
             long lob = lobm.createLO(LargeObjectManager.READ | LargeObjectManager.WRITE);
@@ -127,7 +178,7 @@ public class Chapter6Database2 {
         System.out.println("demo13==================");
         traverseRS("select * from images");
         System.out.println();
-        try(Connection conn = getDbConnection1()) {
+        try (Connection conn = getDbConnection1()) {
             String sql = "insert into images (id, image) values (?,?)";
             try (PreparedStatement st = conn.prepareStatement(sql)) {
                 st.setInt(1, 100);
@@ -163,7 +214,7 @@ public class Chapter6Database2 {
         System.out.println("demo13==================");
         traverseRS("select * from images");
         System.out.println();
-        try(Connection conn = getDbConnection1()) {
+        try (Connection conn = getDbConnection1()) {
             String sql = "insert into images (id, image) values (?,?)";
             try (PreparedStatement st = conn.prepareStatement(sql)) {
                 st.setInt(1, 100);
@@ -217,7 +268,7 @@ public class Chapter6Database2 {
         System.out.println("demo12================");
         traverseRS("select * from images");
         System.out.println();
-        try(Connection conn = getDbConnection1()) {
+        try (Connection conn = getDbConnection1()) {
             conn.setAutoCommit(false);
             String sql = "insert into images (id, image) values (?,?)";
             try (PreparedStatement st = conn.prepareStatement(sql)) {
@@ -242,11 +293,11 @@ public class Chapter6Database2 {
         traverseRS("select * from images");
     }
 
-    private static void traverseRS(String sql){
+    private static void traverseRS(String sql) {
         System.out.println("traverseRS(" + sql + "):");
         try (Connection conn = getDbConnection1()) {
             try (Statement st = conn.createStatement()) {
-                try(ResultSet rs = st.executeQuery(sql)){
+                try (ResultSet rs = st.executeQuery(sql)) {
                     traverseRS(rs);
                 }
             }
@@ -255,7 +306,7 @@ public class Chapter6Database2 {
         }
     }
 
-    private static void traverseRS(ResultSet rs) throws Exception{
+    private static void traverseRS(ResultSet rs) throws Exception {
         int cCount = 0;
         Map<Integer, String> cName = new HashMap<>();
         while (rs.next()) {
@@ -275,7 +326,7 @@ public class Chapter6Database2 {
     }
 
     private static void execute(String sql) {
-        try(Connection conn = getDbConnection1()) {
+        try (Connection conn = getDbConnection1()) {
             try (PreparedStatement st = conn.prepareStatement(sql)) {
                 st.execute();
             }
@@ -285,8 +336,8 @@ public class Chapter6Database2 {
     }
 
     private static void executeStatement(String sql) {
-        try(Connection conn = getDbConnection1()) {
-            try (Statement st = conn.createStatement()){
+        try (Connection conn = getDbConnection1()) {
+            try (Statement st = conn.createStatement()) {
                 st.execute(sql);
             }
         } catch (SQLException e) {
