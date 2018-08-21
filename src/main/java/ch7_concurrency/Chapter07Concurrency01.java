@@ -115,4 +115,38 @@ public class Chapter07Concurrency01 {
         IntStream.range(i, 99999).asDoubleStream().map(Math::sqrt).average();
         return i;
     }
+
+    private static class MutableClass {
+        private int prop;
+
+        public MutableClass(int prop) {
+            this.prop = prop;
+        }
+
+        public int getProp() {
+            return prop;
+        }
+
+        public void setProp(int prop) {
+            this.prop = prop;
+        }
+    }
+
+    private static final class ImmutableClass {
+        private final double prop;
+        private final MutableClass mutableClass;
+
+        public ImmutableClass(double prop, MutableClass mutableClass) {
+            this.prop = prop;
+            this.mutableClass = new MutableClass(mutableClass.getProp());
+        }
+
+        public double getProp() {
+            return prop;
+        }
+
+        public MutableClass getMutableClass() {
+            return new MutableClass(mutableClass.getProp());
+        }
+    }
 }
