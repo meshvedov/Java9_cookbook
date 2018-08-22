@@ -1,19 +1,261 @@
 package ch7_concurrency;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class Chapter07Concurrency03 {
     public static void main(String[] args) {
-        demo1_Executor1();
-        demo1_Executor2();
-        demo2_submitRunnableGetFuture();
-        demo3_submitRunnableGetResult();
+//        demo1_Executor1();
+//        demo1_Executor2();
+//        demo2_submitRunnableGetFuture();
+//        demo3_submitRunnableGetResult();
+//
+//        demo4_submitCallableGetFuture();
+//        demo5_submitCallableGetResult();
 
-        demo4_submitCallableGetFuture();
+        demo6_invokeAllCallables();
+        demo7_invokeAnyCallables();
+        demo8_submitCallables();
+    }
+
+    private static void demo8_submitCallables() {
+        System.out.println("demo8=======================================");
+        final List<Future<Result>> futures = Collections.synchronizedList(new ArrayList<>());
+        List<CallableWorker<Result>> callables = createListOfCallables(1);
+        int poolSize = 3;
+        ExecutorService execService = Executors.newFixedThreadPool(poolSize);
+        for (CallableWorker<Result> callable : callables) {
+            try {
+                Future<Result> future = execService.submit(callable);
+                futures.add(future);
+            } catch (Exception e) {
+                System.out.println("Caught around execService.submit(" + callable.getName() + "): "
+                        + e.getClass().getName());
+            }
+        }
+        shutdownAndCancelTasks(execService, 2, futures);
+        printResults(futures, 2);
+    }
+
+    private static void demo7_invokeAnyCallables() {
+        List<CallableWorker<Result>> callables = createListOfCallables(2);
+
+        System.out.println();
+        System.out.println("Executors.newSingleThreadExecutor():");
+        ExecutorService execService = Executors.newSingleThreadExecutor();
+        invokeAnyCallables(execService, 1, callables);
+
+        System.out.println();
+        System.out.println("Executors.newCachedThreadPool():");
+        execService = Executors.newCachedThreadPool();
+        invokeAnyCallables(execService, 1, callables);
+
+        System.out.println();
+        int poolSize = 3;
+        System.out.println("Executors.newFixedThreadPool(" + poolSize + "):");
+        execService = Executors.newFixedThreadPool(poolSize);
+        invokeAnyCallables(execService, 1, callables);
+    }
+
+    private static void invokeAnyCallables(ExecutorService execService, int shutdownDelaySec, List<CallableWorker<Result>> callables) {
+        Result result = null;
+        try {
+            result = execService.invokeAny(callables, shutdownDelaySec, TimeUnit.SECONDS);
+        } catch (Exception ex) {
+            System.out.println("Caught around execService.invokeAny(): " + ex.getClass().getName());
+        }
+        shutdownAndCancelTasks(execService, shutdownDelaySec, new ArrayList<>());
+        if (result == null) {
+            System.out.println("No result from execService.invokeAny()");
+        } else {
+            System.out.println("Worker " + result.getWorkerName() + " slept "
+                    + result.getSleepSec() + " sec. Result = " + result.getResult());
+        }
+    }
+
+    private static void shutdownAndCancelTasks(ExecutorService execService, int shutdownDelaySec, List<Future<Chapter07Concurrency03.Result>> futures) {
+        try {
+            execService.shutdown();
+            System.out.println("Waiting for " + shutdownDelaySec + " sec before shutting down service...");
+            execService.awaitTermination(shutdownDelaySec, TimeUnit.SECONDS);
+        } catch (Exception ex) {
+            System.out.println("Caught around execService.awaitTermination(): " + ex.getClass().getName());
+        } finally {
+            if (!execService.isTerminated()) {
+                System.out.println("Terminating remaining running tasks...");
+                for (Future<Result> future : futures) {
+                    if (future.isDone() && !future.isCancelled()) {
+                        System.out.println("Cancelling task...");
+                        future.cancel(true);
+                    }
+                }
+            }
+            System.out.println("Calling execService.shutdownNow()...");
+            List<Runnable> l = execService.shutdownNow();
+            System.out.println(l.size() + " tasks were waiting to be executed. Service stopped.");
+        }
+    }
+
+    private static void demo6_invokeAllCallables() {
+        List<CallableWorker<Result>> callables = createListOfCallables(1);
+        System.out.println();
+        System.out.println("Executors.newSingleThreadExecutor():");
+        ExecutorService execService = Executors.newSingleThreadExecutor();
+        invokeAllCallables(execService, 6, callables);
+
+        System.out.println();
+        System.out.println("Executors.newCachedThreadPool():");
+        execService = Executors.newCachedThreadPool();
+        invokeAllCallables(execService, 3, callables);
+
+        System.out.println();
+        int poolSize = 3;
+        System.out.println("Executors.newFixedThreadPool(" + poolSize + "):");
+        execService = Executors.newFixedThreadPool(poolSize);
+        invokeAllCallables(execService, 1, callables);
+    }
+
+    private static void invokeAllCallables(ExecutorService execService, int shutdownDelaySec, List<CallableWorker<Result>> callables) {
+        List<Future<Result>> futures = new ArrayList<>();
+        try {
+            futures = execService.invokeAll(callables, shutdownDelaySec, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            System.out.println("Caught around execService.invokeAll(): " + e.getClass().getName());
+        }
+        try {
+            execService.shutdown();
+            System.out.println("Waiting for " + shutdownDelaySec + " sec before terminating all tasks...");
+            execService.awaitTermination(shutdownDelaySec, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            System.out.println("Caught around execService.awaitTermination(): " + e.getClass().getName());
+        } finally {
+            if (!execService.isTerminated()) {
+                System.out.println("Terminating remaining running tasks...");
+                for (Future<Result> future : futures) {
+                    if (!future.isDone() && !future.isCancelled()) {
+                        try {
+                            System.out.println("Cancelling task " + future.get(shutdownDelaySec, TimeUnit.SECONDS).getWorkerName() + "...");
+                            future.cancel(true);
+                        } catch (Exception ex) {
+                            System.out.println("Caught while cancelling task: " + ex.getClass().getName());
+                        }
+                    }
+                }
+            }
+            System.out.println("Calling execService.shutdownNow()...");
+            execService.shutdownNow();
+        }
+        printResults(futures, shutdownDelaySec);
+    }
+
+    private static List<CallableWorker<Result>> createListOfCallables(int nSec) {
+        return List.of(new CallableWorkerImpl("One", nSec),
+                new CallableWorkerImpl("Two", 2 * nSec),
+                new CallableWorkerImpl("Three", 3 * nSec));
+    }
+
+    private static void demo5_submitCallableGetResult() {
+        CallableWorker callable = new CallableWorkerImpl("One", 2);
+
+        System.out.println();
+        System.out.println("Executors.newSingleThreadExecutor():");
+        ExecutorService execService = Executors.newSingleThreadExecutor();
+        submitCallableGetResult(execService, 1, callable);
+
+        System.out.println();
+        System.out.println("Executors.newCachedThreadPool():");
+        execService = Executors.newCachedThreadPool();
+        submitCallableGetResult(execService, 1, callable);
+
+        System.out.println();
+        int poolSize = 3;
+        System.out.println("Executors.newFixedThreadPool(" + poolSize + "):");
+        execService = Executors.newFixedThreadPool(poolSize);
+        submitCallableGetResult(execService, 1, callable);
+    }
+
+    private static void submitCallableGetResult(ExecutorService execService, int shutdownDelaySec, CallableWorker<Result> callable) {
+        Result result = null;
+        try {
+            result = execService.submit(callable).get(shutdownDelaySec, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            System.out.println("Caught around execService.submit(" + callable.getName() + ").get(): "
+                    + e.getClass().getName());
+        }
+        shutdownAndCancelTask(execService, shutdownDelaySec, new ArrayList<>());
+        System.out.println("Worker " + callable.getName() + " slept " + callable.getSleepSec() + " sec. Result = " + (result == null ? null : result.getResult()));
+    }
+
+    private static void demo4_submitCallableGetFuture() {
+        CallableWorker callable = new CallableWorkerImpl("One", 2);
+        System.out.println("demo4==============================");
+        System.out.println();
+        System.out.println("Executors.newSingleThreadExecutor():");
+        ExecutorService execService = Executors.newSingleThreadExecutor();
+        submitCallableGetFuture(execService, 1, callable);
+
+        System.out.println();
+        System.out.println("Executors.newCachedThreadPool():");
+        execService = Executors.newCachedThreadPool();
+        submitCallableGetFuture(execService, 1, callable);
+
+        System.out.println();
+        int poolSize = 3;
+        System.out.println("Executors.newFixedThreadPool(" + poolSize + "):");
+        execService = Executors.newFixedThreadPool(poolSize);
+        submitCallableGetFuture(execService, 1, callable);
+
+    }
+
+    private static void submitCallableGetFuture(ExecutorService execService, int shutdownDelaySec, CallableWorker callable) {
+        List<Future<Result>> futures = new ArrayList<>();
+        try {
+            Future<Result> future = execService.submit(callable);
+            futures.add(future);
+        } catch (Exception e) {
+            System.out.println("Caught around execService.submit(" + callable.getName() + "): " + e.getClass().getName());
+        }
+        shutdownAndCancelTask(execService, shutdownDelaySec, futures);
+    }
+
+    private interface CallableWorker<Result> extends Callable<Chapter07Concurrency03.Result> {
+        default String getName() {
+            return "Anonymous";
+        }
+
+        default int getSleepSec() {
+            return 1;
+        }
+    }
+
+    private static class CallableWorkerImpl implements CallableWorker<Result> {
+        private String name;
+        private int sleepSec;
+
+        public CallableWorkerImpl(String name, int sleepSec) {
+            this.name = name;
+            this.sleepSec = sleepSec;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public int getSleepSec() {
+            return sleepSec;
+        }
+
+        @Override
+        public Result call() throws Exception {
+            try {
+                Thread.sleep(sleepSec * 1000);
+            } catch (InterruptedException e) {
+                System.out.println("Caught in CallableWorkerImpl: " + e.getClass().getName());
+            }
+            return new Result(name, sleepSec, 42);
+        }
     }
 
     private static void demo3_submitRunnableGetResult() {
@@ -242,7 +484,7 @@ public class Chapter07Concurrency03 {
     }
 
     private static void executeAndSubmit(ExecutorService execService, int shutdownDelaySec, int threadSleepsSec) {
-        System.out.println("shutdownDelaySec = " + shutdownDelaySec + ", threadSleepsSec = " +threadSleepsSec);
+        System.out.println("shutdownDelaySec = " + shutdownDelaySec + ", threadSleepsSec = " + threadSleepsSec);
         Runnable runnable = () -> {
             try {
                 Thread.sleep(threadSleepsSec * 1000);
