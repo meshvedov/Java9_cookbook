@@ -13,7 +13,7 @@ public class DemoSubscriber<T> implements Flow.Subscriber<T> {
     @Override
     public void onSubscribe(Flow.Subscription subscription) {
         this.subscription = subscription;
-        this.subscription.request(0);
+        this.subscription.request(1);
     }
 
     @Override
@@ -29,6 +29,6 @@ public class DemoSubscriber<T> implements Flow.Subscriber<T> {
 
     @Override
     public void onComplete() {
-        System.out.println("Completed");
+        System.out.println("Completed " + name);
     }
 }

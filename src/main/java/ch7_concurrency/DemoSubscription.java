@@ -17,13 +17,11 @@ public class DemoSubscription<T> implements Flow.Subscription {
 
     @Override
     public void request(long n) {
-        future = executor.submit(() -> {
-            this.subscriber.onNext(item);
-        });
+        future = executor.submit(() -> this.subscriber.onNext(item));
     }
 
     @Override
-    public void cancel() {
+    public synchronized void cancel() {
         if (future != null && !future.isCancelled()) {
             this.future.cancel(true);
         }

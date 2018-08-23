@@ -5,10 +5,7 @@ import ch7_concurrency.api.DateLocation;
 import java.time.DayOfWeek;
 import java.time.Month;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.SubmissionPublisher;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.IntStream;
 
 public class Chapter07Concurrency04 {
@@ -23,6 +20,7 @@ public class Chapter07Concurrency04 {
     private static void demo4_Flow_submissionPublisher() {
         System.out.println("demo4=======================");
         ExecutorService execService = ForkJoinPool.commonPool();
+//        ExecutorService execService = Executors.newFixedThreadPool(3);
         try (SubmissionPublisher<Integer> publisher = new SubmissionPublisher<>()) {
             demoSubscribe(publisher, execService, "One");
             demoSubscribe(publisher, execService, "Two");
