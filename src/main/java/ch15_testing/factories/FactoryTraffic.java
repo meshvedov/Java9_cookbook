@@ -1,10 +1,11 @@
 package ch15_testing.factories;
 
-import ch15_testing.api.SpeedModel;
-import ch15_testing.api.TrafficUnit;
-import ch15_testing.api.Vehicle;
+//import ch15_testing.api.SpeedModel;
+//import ch15_testing.api.TrafficUnit;
+//import ch15_testing.api.Vehicle;
 
 import ch15_testing.api.*;
+import ch15_testing.utils.DbUtil;
 
 import java.util.ArrayList;
 import java.util.stream.IntStream;
@@ -56,11 +57,11 @@ public class FactoryTraffic {
     private static class TrafficModelImpl implements TrafficUnit {
         private int passengersCount, payloadPounds, horsePower, weightPounds, temperature;
         private SpeedModel.RoadCondition roadCondition;
-        private TireCondition tireCondition;
-        private VehicleType vehicleType;
+        private SpeedModel.TireCondition tireCondition;
+        private Vehicle.VehicleType vehicleType;
 
         public TrafficModelImpl(Vehicle.VehicleType vehicleType, int passengersCount, int payloadPounds, int engineHorsePower, int vehicleWeightPounds,
-                                RoadCondition roadCondition, TireCondition tireCondition, int temperatureFarenheit) {
+                                SpeedModel.RoadCondition roadCondition, SpeedModel.TireCondition tireCondition, int temperatureFarenheit) {
             this.vehicleType = vehicleType;
             this.passengersCount = passengersCount;
             this.payloadPounds = payloadPounds;
@@ -71,7 +72,7 @@ public class FactoryTraffic {
             this.temperature = temperatureFarenheit;
         }
 
-        public VehicleType getVehicleType() {
+        public Vehicle.VehicleType getVehicleType() {
             return vehicleType;
         }
 
