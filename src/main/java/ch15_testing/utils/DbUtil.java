@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class DbUtil {
 
 
+
     public static boolean isEnoughData(int trafficUnitsNumber) {
         try (Connection conn = getDbConnection()) {
             PreparedStatement st = conn.prepareStatement("select count(*) from data");
@@ -71,6 +72,103 @@ public class DbUtil {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void storeResult(String process, int trafficUnitsNumber, double timeSec, String dateLocation, double[] speedLimitByLane, String result) {
+        String limits = Arrays.stream(speedLimitByLane).mapToObj(Double::toString).collect(Collectors.joining(", "));
+        String sql = "insert into result(process, traffic_units_number, time_sec, date_location, speed_limit_by_lane, result) values (?,?,?,?,?,?)";
+        try (Connection conn = getDbConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+            int i = 1;
+            st.setString(i++, process);
+            st.setInt(i++, trafficUnitsNumber);
+            st.setDouble(i++, timeSec);
+            st.setString(i++, dateLocation);
+            st.setString(i++, limits);
+            st.setString(i++, result);
+            int count = st.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void recordData(Connection conn, TrafficUnit trafficUnit, double speed) {
+        String sql = "insert into data(vehicle_type, horse_power, wheight_pounds, passenger_count, payload_pounds, speed_limit_mph, " +
+                "temperature, road_condition, tire_condition, traction, speed) values (?,?,?,?,?,?,?,?,?,?,?)";
+        try (PreparedStatement st = conn.prepareStatement(sql)) {
+            int i=1;
+            st.setString(i++, trafficUnit.getVehicleType().name());
+            st.setInt(i++, trafficUnit.getHorsePower());
+            st.setInt(i++, trafficUnit.getWeightPounds());
+            st.setInt(i++, trafficUnit.getPassengersCount());
+            st.setInt(i++, trafficUnit.getPayloadPounds());
+            st.setDouble(i++, trafficUnit.getSpeedLimitMph());
+            st.setInt(i++, trafficUnit.getTemperature());
+            st.setString(i++, trafficUnit.getRoadCondition().name());
+            st.setString(i++, trafficUnit.getTireCondition().name());
+            st.setDouble(i++, trafficUnit.getTraction());
+            st.setDouble(i++, speed);
+            int count = st.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void createResultTable() {
+        execute("drop table if exists result");
+        execute("create table result(id serial not null," +
+                "process character varying not null, " +
+                "traffic_units_number integer not null," +
+                "time_sec numeric not null," +
+                "date_location character varying not null," +
+                "speed_limit_by_lane character varying not null," +
+                "result character varying not null);");
+    }
+
+    public static void createDataTable() {
+        execute("drop table if exists data_common");
+        execute("create table data_common(" +
+                "traffic_units_number integer not null," +
+                "time_sec numeric not null," +
+                "date_location character varying not null," +
+                "speed_limit_by_lane character varying not null);");
+        execute("drop table if exists data");
+        execute("create table data(" +
+                "id serial not null," +
+                "vehicle_type character varying not null," +
+                "horse_power integer not null," +
+                "weight_pounds integer not null," +
+                "passengers_count integer not null," +
+                "payload_pounds integer not null," +
+                "speed_limit_mph numeric not null," +
+                "temperature integer not null," +
+                "road_condition character varying not null," +
+                "tire_condition character varying not null," +
+                "traction numeric not null," +
+                "speed numeric not null);");
+    }
+
+    public static void execute(String sql) {
+        try (Connection conn = getDbConnection();
+        PreparedStatement st = conn.prepareStatement(sql)) {
+            st.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String selectResult(String process) {
+        try (Connection conn = getDbConnection();
+        PreparedStatement st = conn.prepareStatement("select result from result where process = ?")) {
+            st.setString(1, process);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     private static class TrafficUnitImpl implements TrafficUnit {
